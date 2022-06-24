@@ -1,0 +1,228 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <string.h>
+
+/* FASE 1: 
+CADASTRO DO NOME DO ALUNO, MATRÍCULA, DESCRIÇÃO DO LIVRO E ID GERADO PELO SISTEMA
+
+80% DE 100, FALTA GERAR O ID ÚNICO
+*/ 
+typedef struct Pedido
+{
+
+    int id;
+    char *nome_aluno;
+    int matricula;
+    char *descricao;
+    struct Pedido *p;
+
+    int prioridade;
+
+    struct Pedido *esq;
+    struct Pedido *dir;
+} PEDIDO;
+
+typedef struct No
+{
+    struct No *prox;
+} NO;
+
+NO *inicio = NULL;
+NO *fim = NULL;
+int tam = 0;
+
+PEDIDO *raiz = NULL;
+
+PEDIDO *buscar(int id, PEDIDO *aux)
+{
+
+    if (aux != NULL)
+    {
+        if (aux->id == id)
+        {
+            return aux;
+        }
+        else if (id < aux->id)
+        {
+            if (aux->esq != NULL)
+            {
+                return buscar(id, aux->esq);
+            }
+            else
+            {
+                return aux;
+            }
+        }
+        else if (id > aux->id)
+        {
+            if (aux->dir != NULL)
+            {
+                return buscar(id, aux->dir);
+            }
+            else
+            {
+                return aux;
+            }
+        }
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+void add_abb(int id, char *nome_aluno, int matricula, char *descricao)
+{
+
+    PEDIDO *aux = buscar(id, raiz);
+
+    if (aux != NULL && aux->id == id)
+    {
+        printf("Insercao invalida!\n");
+    }
+    else
+    {
+
+        PEDIDO *novo = malloc(sizeof(PEDIDO));
+        novo->id = id;
+        novo->nome_aluno = nome_aluno;
+        novo->matricula = matricula;
+        novo->descricao = descricao;
+        novo->esq = NULL;
+        novo->dir = NULL;
+
+        if (aux == NULL)
+        {
+            raiz = novo;
+            novo->p = NULL;
+        }
+        else
+        {
+            novo->p = aux;
+            if (id < aux->id)
+            {
+                aux->esq = novo;
+            }
+            else
+            {
+                aux->dir = novo;
+            }
+        }
+    }
+}
+
+void in_ordem(PEDIDO *aux)
+{
+
+    if (aux->esq != NULL)
+    {
+        in_ordem(aux->esq);
+    }
+    printf("ID: %d\n", aux->id);
+    printf("NOME DO ALUNO: %s\n", aux->nome_aluno);
+    printf("MATRICULA: %d\n", aux->matricula);
+    printf("DESCRICAO: %s\n", aux->descricao);
+    if (aux->dir != NULL)
+    {
+        in_ordem(aux->dir);
+    }
+}
+
+
+
+PEDIDO *remover(int id){
+    PEDIDO* pt = buscar(id, raiz);
+    if(pt == NULL){
+        return NULL;
+    }else if(pt->esq==NULL && pt->dir==NULL){
+        if(pt->id > pt->p->id){
+            pt->p->dir = NULL;
+        }else{
+            pt->p->esq == NULL;
+        }
+    }else if(pt->dir != NULL && pt->esq == NULL){
+        if(pt->id > pt->p->id){
+            pt->p->dir = pt->dir;
+        }else{
+            pt->p->esq = pt->dir;
+        }
+    }else if(pt->dir == NULL && pt->esq != NULL){
+        if(pt->id > pt->p->id){
+            pt->p->dir = pt->esq;
+        }else{
+            pt->p->esq = pt->esq;
+        }
+    }else{
+        PEDIDO *aux = pt;
+        while(aux->dir != NULL){
+            aux = aux->dir;
+        }
+        pt->id = aux->id;
+        if(pt->dir->id == pt->id){
+            pt->dir = NULL;
+        }
+        aux->p->dir = NULL;
+        if(aux-> esq != NULL){
+            PEDIDO *aux2 = buscar(aux->esq->id, raiz);
+            aux2->dir = aux->esq;
+        }
+    }
+    return pt;
+}
+int id_unico()
+{
+    int id;
+    int menor = 0, maior = 10;
+    srand(time(NULL));
+    id = (rand() % (maior - menor + 1)) + menor;
+    
+}
+int main() {
+    printf("\nSISTEMA DE ENCOMENDA DE LIVRO\n");
+    int resp = -1;
+    
+    while (resp != 0) {
+        printf(" 1 - Encomendar um livro.\n");
+        printf(" 2 - Remover uma encomenda de livro.\n");
+        printf(" 3 - Remover um pedido de livro.\n");
+        printf(" 0 - Sair do sistema!\n");
+        printf("Digite a funcionalidade desejada:");
+        scanf("%d", &resp);
+        if (resp == 1) {
+            int id;
+            id = id_unico();
+            //int matricula;
+
+            //encomendar um livro
+            
+            printf("Digite o nome do aluno: \n");
+            char * nome_aluno = malloc(sizeof(char));
+            scanf(" %[^\n]s", nome_aluno);
+
+            printf("Descreva o livro: \n");
+            char * descricao = malloc(sizeof(char));
+            scanf(" %[^\n]s", descricao);
+
+            printf(" Digite o número da matricula: \n");
+            int matricula;
+            scanf(" %d", &matricula);
+            
+            
+            add_abb(id, nome_aluno, matricula, descricao);
+        }else if (resp == 2){
+            int id;
+            in_ordem(raiz);
+            printf(" Digite o id a ser removido: \n");
+            scanf(" %d", &id);
+            //validacao
+                remover(id);
+            //}else{
+             //   printf("\nID inexistente!");
+            //}
+            
+        }
+    }
+    
+    return 0;
+}
